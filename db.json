@@ -1,0 +1,25 @@
+{
+  "tasks": [
+    {
+      "id": "1",
+      "title": "Updae my cv",
+      "description": "should add some details",
+      "deadline": "2024-11-05",
+      "completed": false
+    },
+    {
+      "id": "2",
+      "title": "Repair my bike",
+      "description": "Make an appointment with Bikepark",
+      "deadline": "2024-10-15",
+      "completed": false
+    },
+    {
+      "id": "3",
+      "title": "Print willi photos",
+      "description": "To provide to his school",
+      "deadline": "2024-10-20",
+      "completed": true
+    }
+  ]
+}
