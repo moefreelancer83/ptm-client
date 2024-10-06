@@ -3,16 +3,22 @@ import { createReducer, on } from '@ngrx/store';
 import { Task } from '@_/models/task.model';
 import { TaskActions } from './task.actions';
 
+enum Status {
+  PENDING = 'pending',
+  LOADING = 'loading',
+  ERROR = 'error',
+  SUCCESS = 'success',
+}
 export interface TaskState {
   tasks: ReadonlyArray<Task>;
   error: string | null;
-  status: 'pending' | 'loading' | 'error' | 'success';
+  status: Status;
 }
 
 export const initialTaskState: TaskState = {
   tasks: [],
   error: null,
-  status: 'pending',
+  status: Status.PENDING,
 };
 
 export const taskReducer = createReducer(
@@ -29,5 +35,17 @@ export const taskReducer = createReducer(
     console.log('updatingg a task ...');
     const updatedTasks = state.tasks.map((t) => (t.id === task.id ? task : t));
     return { ...state, tasks: updatedTasks };
-  })
+  }),
+  on(TaskActions.loadTasks, (state) => ({ ...state, status: Status.LOADING })),
+  on(TaskActions.loadTasksFail, (state, { error }) => ({
+    ...state,
+    error,
+    status: Status.ERROR,
+  })),
+  on(TaskActions.loadTasksSuccess, (state, { tasks }) => ({
+    ...state,
+    tasks,
+    error: null,
+    status: Status.SUCCESS,
+  }))
 );

@@ -1,6 +1,15 @@
 export interface Task {
-  id: string;
+  id?: string;
   title: string;
   description: string;
-  deadline?: Date;
+  completed?: boolean;
+  deadline: Date;
+}
+
+export interface TaskDTO {
+  id?: string;
+  title: string;
+  description: string;
+  completed?: boolean;
+  deadline: string;
 }
