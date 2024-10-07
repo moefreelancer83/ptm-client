@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Task, TaskDTO } from '@_/models/task.model';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { Observable, throwError } from 'rxjs';
+import { catchError, map, tap } from 'rxjs/operators';
 
 const httpOptions = {
   headers: new HttpHeaders({
@@ -15,7 +15,7 @@ const httpOptions = {
 })
 export class TaskService {
   //TODO: this should not be hardcoded
-  private apiUrl = 'http://localhost:8000/tasks';
+  private API_URL = 'http://localhost:8000/tasks';
   constructor(private httpClient: HttpClient) {}
 
   private date_to_dateStr = (date: Date) => {
@@ -42,33 +42,42 @@ export class TaskService {
     console.log('TaskService: Adding task:', task);
 
     return this.httpClient
-      .post<TaskDTO>(this.apiUrl, this.toDTO(task), httpOptions)
+      .post<TaskDTO>(this.API_URL, this.toDTO(task), httpOptions)
       .pipe(map(this.fromDTO));
   }
 
   getTasks(): Observable<Task[]> {
-    return this.httpClient
-      .get<TaskDTO[]>(this.apiUrl, httpOptions)
-      .pipe(map((tasks) => tasks.map(this.fromDTO)));
+    console.log('[in taskService ... getTasks]');
+    return this.httpClient.get<TaskDTO[]>(this.API_URL, httpOptions).pipe(
+      map((tasks) => tasks.map(this.fromDTO)),
+      tap((tasks) => console.log('TaskService: Retrieved tasks:', tasks)),
+      catchError(this.handleError)
+    );
   }
 
   getTask(id: string): Observable<Task> {
     return this.httpClient
-      .get<TaskDTO>(`${this.apiUrl}/${id}`, httpOptions)
+      .get<TaskDTO>(`${this.API_URL}/${id}`, httpOptions)
       .pipe(map(this.fromDTO));
   }
 
-  updateTask(id: string, taskData: Partial<Task>): Observable<Task> {
+  updateTask(taskData: Task): Observable<Task> {
     const taskDataDTO = taskData.deadline
       ? { ...taskData, deadline: this.date_to_dateStr(taskData.deadline) }
       : taskData;
+    console.log(taskDataDTO);
     return this.httpClient
-      .put<TaskDTO>(`${this.httpClient}/${id}`, taskDataDTO, httpOptions)
+      .put<TaskDTO>(`${this.API_URL}/${taskData.id}`, taskDataDTO)
       .pipe(map(this.fromDTO));
   }
   deleteTask(id: string): Observable<Task> {
     return this.httpClient
-      .delete<TaskDTO>(`${this.httpClient}/${id}`)
+      .delete<TaskDTO>(`${this.API_URL}/${id}`)
       .pipe(map(this.fromDTO));
+  }
+
+  private handleError(error: any) {
+    console.error('An error occurred:', error);
+    return throwError(() => new Error('Something is wrong?'));
   }
 }
