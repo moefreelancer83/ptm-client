@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { TaskActions } from './task.actions';
 import { of, from } from 'rxjs';
-import { switchMap, map, catchError, tap } from 'rxjs/operators';
+import { switchMap, map, catchError, tap, mergeMap } from 'rxjs/operators';
 import { TaskService } from '@_services/task.service';
 import { AppState } from '@_store/app.state';
 import { Store } from '@ngrx/store';
@@ -12,6 +12,8 @@ export class TaskEffects {
   loadTasks$;
   saveTask$;
   removeTask$;
+  updateTask$;
+
   constructor(
     private actions$: Actions,
     private taskService: TaskService,
@@ -22,10 +24,14 @@ export class TaskEffects {
     this.loadTasks$ = createEffect(() =>
       this.actions$.pipe(
         ofType(TaskActions.loadTasks),
-        switchMap(() =>
-          from(this.taskService.getTasks()).pipe(
-            map((tasks) => TaskActions.loadTasksSuccess({ tasks: tasks })),
-            catchError((error) => of(TaskActions.loadTasksFail({ error })))
+        mergeMap(() =>
+          this.taskService.getTasks().pipe(
+            map((tasks) => {
+              return TaskActions.loadTasksSuccess({ tasks: tasks });
+            }),
+            catchError((error) => {
+              return of(TaskActions.loadTasksFail({ error: error.message }));
+            })
           )
         )
       )
@@ -34,8 +40,7 @@ export class TaskEffects {
     this.saveTask$ = createEffect(() =>
       this.actions$.pipe(
         ofType(TaskActions.addTask),
-        tap((action) => console.log('Effect caught addTask action:', action)),
-        switchMap((action) =>
+        mergeMap((action) =>
           this.taskService.addTask(action.task).pipe(
             map((newTask) => TaskActions.addTaskSuccess({ task: newTask })),
             catchError((error) => of(TaskActions.addTaskFail({ error })))
@@ -47,10 +52,24 @@ export class TaskEffects {
     this.removeTask$ = createEffect(() =>
       this.actions$.pipe(
         ofType(TaskActions.removeTask),
-        switchMap((action) =>
+        mergeMap((action) =>
           this.taskService.deleteTask(action.id).pipe(
             map(() => TaskActions.removeTaskSuccess({ id: action.id })),
             catchError((error) => of(TaskActions.removeTaskFail({ error })))
+          )
+        )
+      )
+    );
+
+    this.updateTask$ = createEffect(() =>
+      this.actions$.pipe(
+        ofType(TaskActions.updateTask),
+        mergeMap((action) =>
+          this.taskService.updateTask(action.task).pipe(
+            map((updatedTask) =>
+              TaskActions.updateTaskSuccess({ task: updatedTask })
+            ),
+            catchError((error) => of(TaskActions.updateTaskFail({ error })))
           )
         )
       )

@@ -7,12 +7,15 @@ export const TaskActions = createActionGroup({
     addTask: props<{ task: Omit<Task, 'id' | 'completed'> }>(),
     addTaskSuccess: props<{ task: Task }>(),
     addTaskFail: props<{ error: string }>(),
+
     removeTask: props<{ id: string }>(),
     removeTaskSuccess: props<{ id: string }>(),
     removeTaskFail: props<{ error: string }>(),
+
     updateTask: props<{ task: Task }>(),
     updateTaskSuccess: props<{ task: Task }>(),
     updateTaskFail: props<{ error: string }>(),
+
     loadTasks: emptyProps(),
     loadTasksSuccess: props<{ tasks: Task[] }>(),
     loadTasksFail: props<{ error: string }>(),
